@@ -1,0 +1,587 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Estruturas de Dados
+
+typedef struct {
+    int id;
+    char nome[100];
+    char endereco[200];
+    char telefone[20];
+    char email[100];
+} Cliente;
+
+typedef struct {
+    int id;
+    char nome[100];
+    char descricao[200];
+    float preco;
+    int estoque;
+} Produto;
+
+typedef struct {
+    int produto_id;
+    int quantidade;
+    float preco_unitario;
+} ItemPedido;
+
+typedef struct {
+    int id;
+    int cliente_id;
+    char data[20];
+    ItemPedido itens[50]; // Supondo um máximo de 50 itens por pedido
+    int num_itens;
+    float total;
+} Pedido;
+
+typedef struct {
+    int id;
+    int produto_id;
+    int quantidade;
+    char data[20];
+    float preco_total;
+} Compra;
+
+// Protótipos de Funções
+void adicionar_cliente(Cliente *clientes, int *num_clientes);
+void listar_clientes(Cliente *clientes, int num_clientes);
+Cliente* buscar_cliente_por_id(Cliente *clientes, int num_clientes, int id);
+void editar_cliente(Cliente *clientes, int num_clientes);
+void remover_cliente(Cliente *clientes, int *num_clientes);
+
+void adicionar_produto(Produto *produtos, int *num_produtos);
+void listar_produtos(Produto *produtos, int num_produtos);
+Produto* buscar_produto_por_id(Produto *produtos, int num_produtos, int id);
+void editar_produto(Produto *produtos, int num_produtos);
+void remover_produto(Produto *produtos, int *num_produtos);
+void atualizar_estoque(Produto *produtos, int num_produtos, int produto_id, int quantidade);
+
+void criar_pedido(Pedido *pedidos, int *num_pedidos, Cliente *clientes, int num_clientes, Produto *produtos, int num_produtos);
+void listar_pedidos(Pedido *pedidos, int num_pedidos, Cliente *clientes, int num_clientes, Produto *produtos, int num_produtos);
+
+void registrar_compra(Compra *compras, int *num_compras, Produto *produtos, int num_produtos);
+void listar_compras(Compra *compras, int num_compras, Produto *produtos, int num_produtos);
+
+void analisar_clientes(Cliente *clientes, int num_clientes, Pedido *pedidos, int num_pedidos);
+void gerar_relatorio_vendas(Pedido *pedidos, int num_pedidos, Produto *produtos, int num_produtos);
+
+// Funções de utilidade (adicionar, remover, buscar - serão implementadas aqui)
+
+int main() {
+    Cliente clientes[100];
+    int num_clientes = 0;
+    Produto produtos[100];
+    int num_produtos = 0;
+    Pedido pedidos[100];
+    int num_pedidos = 0;
+    Compra compras[100];
+    int num_compras = 0;
+
+    int opcao;
+
+    do {
+        printf("\n--- Sistema de Gerenciamento Comercial ---\n");
+        printf("1. Gerenciar Clientes\n");
+        printf("2. Gerenciar Produtos e Estoque\n");
+        printf("3. Processar Pedidos de Vendas\n");
+        printf("4. Acompanhar Atividades de Compras\n");
+        printf("5. Analisar Dados de Clientes\n");
+        printf("6. Gerar Relatorio de Vendas\n");
+        printf("0. Sair\n");
+        printf("Escolha uma opcao: ");
+        scanf("%d", &opcao);
+
+        switch (opcao) {
+            case 1: {
+                int sub_opcao;
+                do {
+                    printf("\n--- Gerenciar Clientes ---\n");
+                    printf("1. Adicionar Cliente\n");
+                    printf("2. Listar Clientes\n");
+                    printf("3. Editar Cliente\n");
+                    printf("4. Remover Cliente\n");
+                    printf("0. Voltar\n");
+                    printf("Escolha uma opcao: ");
+                    scanf("%d", &sub_opcao);
+
+                    switch (sub_opcao) {
+                        case 1:
+                            adicionar_cliente(clientes, &num_clientes);
+                            break;
+                        case 2:
+                            listar_clientes(clientes, num_clientes);
+                            break;
+                        case 3:
+                            editar_cliente(clientes, num_clientes);
+                            break;
+                        case 4:
+                            remover_cliente(clientes, &num_clientes);
+                            break;
+                        case 0:
+                            printf("Voltando ao menu principal.\n");
+                            break;
+                        default:
+                            printf("Opcao invalida. Tente novamente.\n");
+                    }
+                } while (sub_opcao != 0);
+                break;
+            }
+            case 2: {
+                int sub_opcao;
+                do {
+                    printf("\n--- Gerenciar Produtos e Estoque ---\n");
+                    printf("1. Adicionar Produto\n");
+                    printf("2. Listar Produtos\n");
+                    printf("3. Editar Produto\n");
+                    printf("4. Remover Produto\n");
+                    printf("5. Atualizar Estoque\n");
+                    printf("0. Voltar\n");
+                    printf("Escolha uma opcao: ");
+                    scanf("%d", &sub_opcao);
+
+                    switch (sub_opcao) {
+                        case 1:
+                            adicionar_produto(produtos, &num_produtos);
+                            break;
+                        case 2:
+                            listar_produtos(produtos, num_produtos);
+                            break;
+                        case 3:
+                            editar_produto(produtos, num_produtos);
+                            break;
+                        case 4:
+                            remover_produto(produtos, &num_produtos);
+                            break;
+                        case 5:
+                            {
+                                int prod_id, qtd;
+                                printf("Digite o ID do produto: ");
+                                scanf("%d", &prod_id);
+                                printf("Digite a quantidade para adicionar/remover (negativo para remover): ");
+                                scanf("%d", &qtd);
+                                atualizar_estoque(produtos, num_produtos, prod_id, qtd);
+                            }
+                            break;
+                        case 0:
+                            printf("Voltando ao menu principal.\n");
+                            break;
+                        default:
+                            printf("Opcao invalida. Tente novamente.\n");
+                    }
+                } while (sub_opcao != 0);
+                break;
+            }
+            case 3:
+                criar_pedido(pedidos, &num_pedidos, clientes, num_clientes, produtos, num_produtos);
+                break;
+            case 4:
+                registrar_compra(compras, &num_compras, produtos, num_produtos);
+                break;
+            case 5:
+                analisar_clientes(clientes, num_clientes, pedidos, num_pedidos);
+                break;
+            case 6:
+                gerar_relatorio_vendas(pedidos, num_pedidos, produtos, num_produtos);
+                break;
+            case 0:
+                printf("Saindo do sistema. Ate mais!\n");
+                break;
+            default:
+                printf("Opcao invalida. Tente novamente.\n");
+        }
+    } while (opcao != 0);
+
+    return 0;
+}
+
+// Funções de utilidade para Cliente
+
+void adicionar_cliente(Cliente *clientes, int *num_clientes) {
+    printf("\n--- Adicionar Novo Cliente ---\n");
+    clientes[*num_clientes].id = *num_clientes + 1;
+    printf("ID do Cliente: %d\n", clientes[*num_clientes].id);
+    printf("Nome: ");
+    scanf("%s", clientes[*num_clientes].nome);
+    printf("Endereco: ");
+    scanf("%s", clientes[*num_clientes].endereco);
+    printf("Telefone: ");
+    scanf("%s", clientes[*num_clientes].telefone);
+    printf("Email: ");
+    scanf("%s", clientes[*num_clientes].email);
+    (*num_clientes)++;
+    printf("Cliente adicionado com sucesso!\n");
+}
+
+void listar_clientes(Cliente *clientes, int num_clientes) {
+    printf("\n--- Lista de Clientes ---\n");
+    if (num_clientes == 0) {
+        printf("Nenhum cliente cadastrado.\n");
+        return;
+    }
+    for (int i = 0; i < num_clientes; i++) {
+        printf("ID: %d, Nome: %s, Telefone: %s\n", clientes[i].id, clientes[i].nome, clientes[i].telefone);
+    }
+}
+
+Cliente* buscar_cliente_por_id(Cliente *clientes, int num_clientes, int id) {
+    for (int i = 0; i < num_clientes; i++) {
+        if (clientes[i].id == id) {
+            return &clientes[i];
+        }
+    }
+    return NULL;
+}
+
+void editar_cliente(Cliente *clientes, int num_clientes) {
+    printf("\n--- Editar Cliente ---\n");
+    int id_busca;
+    printf("Digite o ID do cliente a ser editado: ");
+    scanf("%d", &id_busca);
+
+    Cliente *cliente_encontrado = buscar_cliente_por_id(clientes, num_clientes, id_busca);
+
+    if (cliente_encontrado != NULL) {
+        printf("Cliente encontrado. Digite os novos dados:\n");
+        printf("Nome (%s): ", cliente_encontrado->nome);
+        scanf("%s", cliente_encontrado->nome);
+        printf("Endereco (%s): ", cliente_encontrado->endereco);
+        scanf("%s", cliente_encontrado->endereco);
+        printf("Telefone (%s): ", cliente_encontrado->telefone);
+        scanf("%s", cliente_encontrado->telefone);
+        printf("Email (%s): ", cliente_encontrado->email);
+        scanf("%s", cliente_encontrado->email);
+        printf("Cliente editado com sucesso!\n");
+    } else {
+        printf("Cliente com ID %d nao encontrado.\n", id_busca);
+    }
+}
+
+void remover_cliente(Cliente *clientes, int *num_clientes) {
+    printf("\n--- Remover Cliente ---\n");
+    int id_busca;
+    printf("Digite o ID do cliente a ser removido: ");
+    scanf("%d", &id_busca);
+
+    int encontrado_idx = -1;
+    for (int i = 0; i < *num_clientes; i++) {
+        if (clientes[i].id == id_busca) {
+            encontrado_idx = i;
+            break;
+        }
+    }
+
+    if (encontrado_idx != -1) {
+        for (int i = encontrado_idx; i < (*num_clientes - 1); i++) {
+            clientes[i] = clientes[i + 1];
+        }
+        (*num_clientes)--;
+        printf("Cliente removido com sucesso!\n");
+    } else {
+        printf("Cliente com ID %d nao encontrado.\n", id_busca);
+    }
+}
+
+// Funções de utilidade para Produto
+
+void adicionar_produto(Produto *produtos, int *num_produtos) {
+    printf("\n--- Adicionar Novo Produto ---\n");
+    produtos[*num_produtos].id = *num_produtos + 1;
+    printf("ID do Produto: %d\n", produtos[*num_produtos].id);
+    printf("Nome: ");
+    scanf("%s", produtos[*num_produtos].nome);
+    printf("Descricao: ");
+    scanf("%s", produtos[*num_produtos].descricao);
+    printf("Preco: ");
+    scanf("%f", &produtos[*num_produtos].preco);
+    printf("Estoque: ");
+    scanf("%d", &produtos[*num_produtos].estoque);
+    (*num_produtos)++;
+    printf("Produto adicionado com sucesso!\n");
+}
+
+void listar_produtos(Produto *produtos, int num_produtos) {
+    printf("\n--- Lista de Produtos ---\n");
+    if (num_produtos == 0) {
+        printf("Nenhum produto cadastrado.\n");
+        return;
+    }
+    for (int i = 0; i < num_produtos; i++) {
+        printf("ID: %d, Nome: %s, Preco: %.2f, Estoque: %d\n", produtos[i].id, produtos[i].nome, produtos[i].preco, produtos[i].estoque);
+    }
+}
+
+Produto* buscar_produto_por_id(Produto *produtos, int num_produtos, int id) {
+    for (int i = 0; i < num_produtos; i++) {
+        if (produtos[i].id == id) {
+            return &produtos[i];
+        }
+    }
+    return NULL;
+}
+
+void editar_produto(Produto *produtos, int num_produtos) {
+    printf("\n--- Editar Produto ---\n");
+    int id_busca;
+    printf("Digite o ID do produto a ser editado: ");
+    scanf("%d", &id_busca);
+
+    Produto *produto_encontrado = buscar_produto_por_id(produtos, num_produtos, id_busca);
+
+    if (produto_encontrado != NULL) {
+        printf("Produto encontrado. Digite os novos dados:\n");
+        printf("Nome (%s): ", produto_encontrado->nome);
+        scanf("%s", produto_encontrado->nome);
+        printf("Descricao (%s): ", produto_encontrado->descricao);
+        scanf("%s", produto_encontrado->descricao);
+        printf("Preco (%.2f): ", produto_encontrado->preco);
+        scanf("%f", &produto_encontrado->preco);
+        printf("Estoque (%d): ", produto_encontrado->estoque);
+        scanf("%d", &produto_encontrado->estoque);
+        printf("Produto editado com sucesso!\n");
+    } else {
+        printf("Produto com ID %d nao encontrado.\n", id_busca);
+    }
+}
+
+void remover_produto(Produto *produtos, int *num_produtos) {
+    printf("\n--- Remover Produto ---\n");
+    int id_busca;
+    printf("Digite o ID do produto a ser removido: ");
+    scanf("%d", &id_busca);
+
+    int encontrado_idx = -1;
+    for (int i = 0; i < *num_produtos; i++) {
+        if (produtos[i].id == id_busca) {
+            encontrado_idx = i;
+            break;
+        }
+    }
+
+    if (encontrado_idx != -1) {
+        for (int i = encontrado_idx; i < (*num_produtos - 1); i++) {
+            produtos[i] = produtos[i + 1];
+        }
+        (*num_produtos)--;
+        printf("Produto removido com sucesso!\n");
+    } else {
+        printf("Produto com ID %d nao encontrado.\n", id_busca);
+    }
+}
+
+void atualizar_estoque(Produto *produtos, int num_produtos, int produto_id, int quantidade) {
+    Produto *produto = buscar_produto_por_id(produtos, num_produtos, produto_id);
+    if (produto != NULL) {
+        produto->estoque += quantidade;
+        printf("Estoque do produto %s atualizado para %d.\n", produto->nome, produto->estoque);
+    } else {
+        printf("Produto com ID %d nao encontrado para atualizar estoque.\n", produto_id);
+    }
+}
+
+// Funções de utilidade para Pedido
+
+void criar_pedido(Pedido *pedidos, int *num_pedidos, Cliente *clientes, int num_clientes, Produto *produtos, int num_produtos) {
+    printf("\n--- Criar Novo Pedido ---\n");
+    int cliente_id_busca;
+    printf("Digite o ID do cliente para este pedido: ");
+    scanf("%d", &cliente_id_busca);
+
+    Cliente *cliente_encontrado = buscar_cliente_por_id(clientes, num_clientes, cliente_id_busca);
+
+    if (cliente_encontrado == NULL) {
+        printf("Cliente com ID %d nao encontrado.\n", cliente_id_busca);
+        return;
+    }
+
+    pedidos[*num_pedidos].id = *num_pedidos + 1;
+    pedidos[*num_pedidos].cliente_id = cliente_id_busca;
+    printf("Data do Pedido (DD/MM/AAAA): ");
+    scanf("%s", pedidos[*num_pedidos].data);
+    pedidos[*num_pedidos].num_itens = 0;
+    pedidos[*num_pedidos].total = 0.0;
+
+    int adicionar_mais_itens = 1;
+    while (adicionar_mais_itens) {
+        int produto_id_busca;
+        printf("Digite o ID do produto para adicionar ao pedido (0 para finalizar): ");
+        scanf("%d", &produto_id_busca);
+
+        if (produto_id_busca == 0) {
+            adicionar_mais_itens = 0;
+            break;
+        }
+
+        Produto *produto_encontrado = buscar_produto_por_id(produtos, num_produtos, produto_id_busca);
+
+        if (produto_encontrado != NULL) {
+            int quantidade;
+            printf("Digite a quantidade de %s: ", produto_encontrado->nome);
+            scanf("%d", &quantidade);
+
+            if (quantidade > 0 && produto_encontrado->estoque >= quantidade) {
+                pedidos[*num_pedidos].itens[pedidos[*num_pedidos].num_itens].produto_id = produto_id_busca;
+                pedidos[*num_pedidos].itens[pedidos[*num_pedidos].num_itens].quantidade = quantidade;
+                pedidos[*num_pedidos].itens[pedidos[*num_pedidos].num_itens].preco_unitario = produto_encontrado->preco;
+                pedidos[*num_pedidos].total += (quantidade * produto_encontrado->preco);
+                produto_encontrado->estoque -= quantidade; // Atualiza o estoque
+                pedidos[*num_pedidos].num_itens++;
+                printf("Item adicionado ao pedido.\n");
+            } else {
+                printf("Quantidade invalida ou estoque insuficiente para %s (Estoque disponivel: %d).\n", produto_encontrado->nome, produto_encontrado->estoque);
+            }
+        } else {
+            printf("Produto com ID %d nao encontrado.\n", produto_id_busca);
+        }
+    }
+
+    if (pedidos[*num_pedidos].num_itens > 0) {
+        (*num_pedidos)++;
+        printf("Pedido criado com sucesso! Total: %.2f\n", pedidos[*num_pedidos - 1].total);
+    } else {
+        printf("Nenhum item adicionado ao pedido. Pedido nao criado.\n");
+    }
+}
+
+void listar_pedidos(Pedido *pedidos, int num_pedidos, Cliente *clientes, int num_clientes, Produto *produtos, int num_produtos) {
+    printf("\n--- Lista de Pedidos ---\n");
+    if (num_pedidos == 0) {
+        printf("Nenhum pedido cadastrado.\n");
+        return;
+    }
+    for (int i = 0; i < num_pedidos; i++) {
+        Cliente *cliente = buscar_cliente_por_id(clientes, num_clientes, pedidos[i].cliente_id);
+        printf("ID Pedido: %d, Cliente: %s (ID: %d), Data: %s, Total: %.2f\n",
+               pedidos[i].id, cliente ? cliente->nome : "Desconhecido", pedidos[i].cliente_id, pedidos[i].data, pedidos[i].total);
+        printf("  Itens:\n");
+        for (int j = 0; j < pedidos[i].num_itens; j++) {
+            Produto *produto = buscar_produto_por_id(produtos, num_produtos, pedidos[i].itens[j].produto_id);
+            printf("    - %s (ID: %d), Quantidade: %d, Preco Unitario: %.2f\n",
+                   produto ? produto->nome : "Desconhecido", pedidos[i].itens[j].produto_id, pedidos[i].itens[j].quantidade, pedidos[i].itens[j].preco_unitario);
+        }
+    }
+}
+
+// Funções de utilidade para Compra
+
+void registrar_compra(Compra *compras, int *num_compras, Produto *produtos, int num_produtos) {
+    printf("\n--- Registrar Nova Compra ---\n");
+    int produto_id_busca;
+    printf("Digite o ID do produto comprado: ");
+    scanf("%d", &produto_id_busca);
+
+    Produto *produto_encontrado = buscar_produto_por_id(produtos, num_produtos, produto_id_busca);
+
+    if (produto_encontrado == NULL) {
+        printf("Produto com ID %d nao encontrado.\n", produto_id_busca);
+        return;
+    }
+
+    int quantidade;
+    printf("Digite a quantidade comprada de %s: ", produto_encontrado->nome);
+    scanf("%d", &quantidade);
+
+    if (quantidade <= 0) {
+        printf("Quantidade invalida.\n");
+        return;
+    }
+
+    compras[*num_compras].id = *num_compras + 1;
+    compras[*num_compras].produto_id = produto_id_busca;
+    compras[*num_compras].quantidade = quantidade;
+    printf("Data da Compra (DD/MM/AAAA): ");
+    scanf("%s", compras[*num_compras].data);
+    compras[*num_compras].preco_total = quantidade * produto_encontrado->preco;
+
+    // Atualiza o estoque do produto com a quantidade comprada
+    atualizar_estoque(produtos, num_produtos, produto_id_busca, quantidade);
+
+    (*num_compras)++;
+    printf("Compra registrada com sucesso!\n");
+}
+
+void listar_compras(Compra *compras, int num_compras, Produto *produtos, int num_produtos) {
+    printf("\n--- Lista de Compras Registradas ---\n");
+    if (num_compras == 0) {
+        printf("Nenhuma compra registrada.\n");
+        return;
+    }
+    for (int i = 0; i < num_compras; i++) {
+        Produto *produto = buscar_produto_por_id(produtos, num_produtos, compras[i].produto_id);
+        printf("ID Compra: %d, Produto: %s (ID: %d), Quantidade: %d, Data: %s, Total: %.2f\n",
+               compras[i].id, produto ? produto->nome : "Desconhecido", compras[i].produto_id, compras[i].quantidade, compras[i].data, compras[i].preco_total);
+    }
+}
+
+// Funções para Análise de Dados de Clientes
+
+void analisar_clientes(Cliente *clientes, int num_clientes, Pedido *pedidos, int num_pedidos) {
+    printf("\n--- Analise de Dados de Clientes ---\n");
+    if (num_clientes == 0) {
+        printf("Nenhum cliente cadastrado para analise.\n");
+        return;
+    }
+
+    printf("\nClientes com mais pedidos:\n");
+    // Implementacao simples: contar pedidos por cliente
+    int *pedidos_por_cliente = (int *)calloc(num_clientes, sizeof(int));
+    if (pedidos_por_cliente == NULL) {
+        printf("Erro de alocacao de memoria.\n");
+        return;
+    }
+
+    for (int i = 0; i < num_pedidos; i++) {
+        for (int j = 0; j < num_clientes; j++) {
+            if (pedidos[i].cliente_id == clientes[j].id) {
+                pedidos_por_cliente[j]++;
+                break;
+            }
+        }
+    }
+
+    for (int i = 0; i < num_clientes; i++) {
+        printf("Cliente: %s (ID: %d) - Pedidos: %d\n", clientes[i].nome, clientes[i].id, pedidos_por_cliente[i]);
+    }
+    free(pedidos_por_cliente);
+
+    // Poderiam ser adicionadas mais analises aqui, como valor total de compras por cliente, etc.
+}
+
+// Funções para Geração de Relatórios de Vendas
+
+void gerar_relatorio_vendas(Pedido *pedidos, int num_pedidos, Produto *produtos, int num_produtos) {
+    printf("\n--- Relatorio de Vendas ---\n");
+    if (num_pedidos == 0) {
+        printf("Nenhum pedido para gerar relatorio.\n");
+        return;
+    }
+
+    float total_vendas_geral = 0.0;
+    printf("\nDetalhes dos Pedidos:\n");
+    for (int i = 0; i < num_pedidos; i++) {
+        printf("Pedido ID: %d, Data: %s, Total: %.2f\n", pedidos[i].id, pedidos[i].data, pedidos[i].total);
+        total_vendas_geral += pedidos[i].total;
+    }
+
+    printf("\nTotal Geral de Vendas: %.2f\n", total_vendas_geral);
+
+    printf("\nProdutos mais vendidos:\n");
+    // Implementacao simples: contar quantidade vendida por produto
+    // Isso exigiria um array auxiliar para armazenar as quantidades vendidas de cada produto
+    // Para simplificar, vamos apenas listar os produtos e suas quantidades nos pedidos existentes
+    // Uma implementacao mais robusta usaria um mapa ou array dinamico para somar as quantidades
+
+    // Exemplo simplificado (nao soma quantidades de produtos repetidos em diferentes pedidos)
+    for (int i = 0; i < num_pedidos; i++) {
+        for (int j = 0; j < pedidos[i].num_itens; j++) {
+            Produto *produto = buscar_produto_por_id(produtos, num_produtos, pedidos[i].itens[j].produto_id);
+            if (produto != NULL) {
+                printf("  - %s (ID: %d), Quantidade Vendida: %d\n", produto->nome, produto->id, pedidos[i].itens[j].quantidade);
+            }
+        }
+    }
+
+    // Poderiam ser adicionados mais detalhes ao relatorio, como vendas por periodo, por cliente, etc.
+}
+
+
